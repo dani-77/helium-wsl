@@ -469,16 +469,18 @@ impl TickContext<'_> {
     }
 }
 
-/// Shrinks a surface to 1x1 and releases its exclusive zone and keyboard
+/// Shrinks a surface to 2x1 and releases its exclusive zone and keyboard
 /// focus.
 ///
 /// Margins can't hide a layer surface: they only apply to the edges it is
-/// anchored to, so a surface anchored to the top stayed where it was.
+/// anchored to, so a surface anchored to the top stayed where it was. Not
+/// 1x1: layer-shika takes a requested width of 1 as the whole output's
+/// width.
 fn hide_surface(control: &ShellControl, surface: &str) {
     let handle = control.surface_by_name(surface);
     let _ = handle.set_exclusive_zone(0);
     let _ = handle.set_keyboard_interactivity(KeyboardInteractivity::None);
-    let _ = handle.resize(1, 1);
+    let _ = handle.resize(2, 1);
 }
 
 /// Restores a surface's size, margins, exclusive zone and keyboard mode as
@@ -898,7 +900,7 @@ impl ShellInstance {
         self
     }
 
-    /// Hide a surface: shrink it to 1x1 and release its exclusive zone and
+    /// Hide a surface: shrink it to 2x1 and release its exclusive zone and
     /// keyboard focus. The surface stays mapped, so showing it again is
     /// instant.
     pub fn hide(&mut self, surface: &str) {
