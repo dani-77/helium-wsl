@@ -452,6 +452,17 @@ impl TickContext<'_> {
             .and_then(|s| s.component_instance().get_property(prop).ok())
     }
 
+    /// Set a property of an exported Slint `global` on every instance of a
+    /// named surface (globals are per component instance).
+    pub fn set_global(&mut self, surface: &str, global: &str, prop: &str, value: impl IntoSlintValue) {
+        let value = value.into_slint_value();
+        for s in self.app_state.surfaces_by_name(surface) {
+            let _ = s
+                .component_instance()
+                .set_global_property(global, prop, value.clone());
+        }
+    }
+
     /// Hide a surface. See [`ShellInstance::hide`].
     pub fn hide(&self, surface: &str) {
         hide_surface(&self.control, surface);
@@ -523,6 +534,17 @@ impl IpcContext<'_> {
             .surfaces_by_name(surface)
             .first()
             .and_then(|s| s.component_instance().get_property(prop).ok())
+    }
+
+    /// Set a property of an exported Slint `global` on every instance of a
+    /// named surface (globals are per component instance).
+    pub fn set_global(&mut self, surface: &str, global: &str, prop: &str, value: impl IntoSlintValue) {
+        let value = value.into_slint_value();
+        for s in self.app_state.surfaces_by_name(surface) {
+            let _ = s
+                .component_instance()
+                .set_global_property(global, prop, value.clone());
+        }
     }
 
     /// Hide a surface. See [`ShellInstance::hide`].
@@ -911,6 +933,14 @@ impl ShellInstance {
     /// exclusive zone and keyboard mode.
     pub fn show(&mut self, surface: &str) {
         show_surface(&self.inner.control(), &self.surface_configs, surface);
+    }
+
+    /// Set a property of an exported Slint `global` on a named surface.
+    pub fn set_global(&mut self, surface: &str, global: &str, prop: &str, value: impl IntoSlintValue) {
+        let value = value.into_slint_value();
+        let _ = self.inner.with_surface(surface, |comp| {
+            let _ = comp.set_global_property(global, prop, value.clone());
+        });
     }
 
     /// Raw layer-shika control, for what this wrapper doesn't cover
